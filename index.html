@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Chat</title>
+  <style>
+    #chat-container {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #chat-messages {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h3>Firebase Chat</h3>
+    <div id="chat-messages"></div>
+    <input type="text" id="message-input" placeholder="Type your message">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="closeChat()">Close</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.5/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebase/init.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const database = firebase.database();
+    const messagesRef = database.ref('messages');
+
+    messagesRef.on('child_added', (snapshot) => {
+      const messageData = snapshot.val();
+      displayMessage(messageData.message);
+    });
+
+    window.sendMessage = function() {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value.trim();
+
+      if (message !== '') {
+        const timestamp = new Date().getTime();
+        messagesRef.push({
+          timestamp: timestamp,
+          message: message
+        });
+
+        messageInput.value = '';
+      }
+    };
+
+    window.displayMessage = function(message) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageElement = document.createElement('div');
+      messageElement.innerText = message;
+      chatMessages.appendChild(messageElement);
+    };
+
+    window.closeChat = function() {
+      const container = document.getElementById('chat-container');
+      container.remove();
+    };
+  </script>
+</body>
+</html>
