@@ -1,48 +1,90 @@
 javascript:(function() {
   const container = document.createElement('div');
-  container.id = 'chat-container';
+  container.id = 'bookmarklet-container';
+  container.style.position = 'fixed';
+  container.style.top = '50px';
+  container.style.left = '50px';
+  container.style.padding = '10px';
+  container.style.background = '#fff';
+  container.style.border = '1px solid #ccc';
   container.innerHTML = `
-    <h3>Firebase Chat</h3>
+    <h3>Bookmarklet Chat</h3>
     <div id="chat-messages"></div>
     <input type="text" id="message-input" placeholder="Type your message">
+    <input type="text" id="username-input" placeholder="Your username">
     <button onclick="sendMessage()">Send</button>
-    <button onclick="closeChat()">Close</button>
+    <button onclick="closeBookmarklet()">Close</button>
   `;
-
   document.body.appendChild(container);
 
-  const database = firebase.database();
-  const messagesRef = database.ref('messages');
+  const loadFirebaseScript = () => {
+    const firebaseScript = document.createElement('script');
+    firebaseScript.src = 'https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js';
+    document.head.appendChild(firebaseScript);
 
-  messagesRef.on('child_added', (snapshot) => {
-    const messageData = snapshot.val();
-    displayMessage(messageData.message);
-  });
+    firebaseScript.onload = () => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyATprw78yGxDUHvpr8d509xkdU7yYdyu5A",
+        authDomain: "chat-zone-v3.firebaseapp.com",
+        projectId: "chat-zone-v3",
+        storageBucket: "chat-zone-v3.appspot.com",
+        messagingSenderId: "375876755376",
+        appId: "1:375876755376:web:02addda3793877a4928075",
+        measurementId: "G-L416XBBLWD"
+      };
 
-  window.sendMessage = function() {
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value.trim();
+      const databaseScript = document.createElement('script');
+      databaseScript.src = 'https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js';
+      document.head.appendChild(databaseScript);
 
-    if (message !== '') {
-      const timestamp = new Date().getTime();
-      messagesRef.push({
-        timestamp: timestamp,
-        message: message
-      });
+      databaseScript.onload = () => {
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-      messageInput.value = '';
-    }
+        const usernameInput = document.getElementById('username-input');
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+          usernameInput.value = storedUsername;
+        }
+
+        window.sendMessage = async () => {
+          const messageInput = document.getElementById('message-input');
+          const username = usernameInput.value.trim();
+          const message = messageInput.value.trim();
+
+          if (username !== '' && message !== '') {
+            localStorage.setItem('username', username);
+
+            const timestamp = new Date().getTime();
+
+            db.ref('messages').push({
+              timestamp: timestamp,
+              username: username,
+              message: message
+            });
+
+            messageInput.value = '';
+          }
+        };
+
+        window.displayMessage = (messageData) => {
+          const chatMessages = document.getElementById('chat-messages');
+          const messageElement = document.createElement('div');
+          messageElement.innerText = `${messageData.username}: ${messageData.message}`;
+          chatMessages.appendChild(messageElement);
+        };
+
+        db.ref('messages').on('child_added', (snapshot) => {
+          const messageData = snapshot.val();
+          displayMessage(messageData);
+        });
+
+        window.closeBookmarklet = () => {
+          container.remove();
+        };
+      };
+    };
   };
 
-  window.displayMessage = function(message) {
-    const chatMessages = document.getElementById('chat-messages');
-    const messageElement = document.createElement('div');
-    messageElement.innerText = message;
-    chatMessages.appendChild(messageElement);
-  };
-
-  window.closeChat = function() {
-    const container = document.getElementById('chat-container');
-    container.remove();
-  };
+  loadFirebaseScript();
 })();
