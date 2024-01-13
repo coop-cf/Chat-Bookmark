@@ -1,0 +1,48 @@
+javascript:(function() {
+  const container = document.createElement('div');
+  container.id = 'chat-container';
+  container.innerHTML = `
+    <h3>Firebase Chat</h3>
+    <div id="chat-messages"></div>
+    <input type="text" id="message-input" placeholder="Type your message">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="closeChat()">Close</button>
+  `;
+
+  document.body.appendChild(container);
+
+  const database = firebase.database();
+  const messagesRef = database.ref('messages');
+
+  messagesRef.on('child_added', (snapshot) => {
+    const messageData = snapshot.val();
+    displayMessage(messageData.message);
+  });
+
+  window.sendMessage = function() {
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+
+    if (message !== '') {
+      const timestamp = new Date().getTime();
+      messagesRef.push({
+        timestamp: timestamp,
+        message: message
+      });
+
+      messageInput.value = '';
+    }
+  };
+
+  window.displayMessage = function(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.innerText = message;
+    chatMessages.appendChild(messageElement);
+  };
+
+  window.closeChat = function() {
+    const container = document.getElementById('chat-container');
+    container.remove();
+  };
+})();
