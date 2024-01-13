@@ -1,19 +1,21 @@
-javascript:(function() {
+javascript:(function () {
   const container = document.createElement('div');
   container.id = 'bookmarklet-container';
   container.style.position = 'fixed';
   container.style.top = '50px';
   container.style.left = '50px';
-  container.style.padding = '10px';
-  container.style.background = '#fff';
+  container.style.padding = '20px';
+  container.style.background = '#ffffff';
   container.style.border = '1px solid #ccc';
+  container.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+  container.style.fontFamily = 'Arial, sans-serif';
   container.innerHTML = `
-    <h3>Bookmarklet Chat</h3>
-    <div id="chat-messages"></div>
-    <input type="text" id="message-input" placeholder="Type your message">
-    <input type="text" id="username-input" placeholder="Your username">
-    <button onclick="sendMessage()">Send</button>
-    <button onclick="closeBookmarklet()">Close</button>
+    <h2 style="margin-bottom: 10px; font-size: 20px; color: #333;">Bookmarklet Chat</h2>
+    <div id="chat-messages" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;"></div>
+    <input type="text" id="message-input" placeholder="Type your message" style="width: calc(100% - 20px); padding: 5px; margin-bottom: 10px;">
+    <input type="text" id="username-input" placeholder="Your username" style="width: calc(100% - 20px); padding: 5px; margin-bottom: 10px;">
+    <button onclick="sendMessage()" style="background: #4caf50; color: #fff; border: none; padding: 8px 12px; cursor: pointer;">Send</button>
+    <button onclick="closeBookmarklet()" style="background: #f44336; color: #fff; border: none; padding: 8px 12px; cursor: pointer; margin-left: 5px;">Close</button>
   `;
   document.body.appendChild(container);
 
@@ -88,3 +90,4 @@ javascript:(function() {
 
   loadFirebaseScript();
 })();
+
