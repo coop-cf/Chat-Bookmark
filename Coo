@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmarklet Chat</title>
+</head>
+<body>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const container = document.createElement('div');
+    container.id = 'bookmarklet-container';
+    container.style.position = 'fixed';
+    container.style.top = '50px';
+    container.style.left = '50px';
+    container.style.padding = '20px';
+    container.style.background = '#ffffff';
+    container.style.border = '1px solid #ccc';
+    container.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.innerHTML = `
+      <h2 style="margin-bottom: 10px; font-size: 20px; color: #333;">Bookmarklet Chat</h2>
+      <div id="chat-messages" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;"></div>
+      <input type="text" id="message-input" placeholder="Type your message" style="width: calc(100% - 20px); padding: 5px; margin-bottom: 10px;">
+      <input type="text" id="username-input" placeholder="Your username" style="width: calc(100% - 20px); padding: 5px; margin-bottom: 10px;">
+      <button onclick="sendMessage()" style="background: #4caf50; color: #fff; border: none; padding: 8px 12px; cursor: pointer;">Send</button>
+      <button onclick="closeBookmarklet()" style="background: #f44336; color: #fff; border: none; padding: 8px 12px; cursor: pointer; margin-left: 5px;">Close</button>
+    `;
+    document.body.appendChild(container);
+
+    const loadFirebaseScript = () => {
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+        measurementId: "YOUR_MEASUREMENT_ID"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const usernameInput = document.getElementById('username-input');
+      const storedUsername = localStorage.getItem('username');
+      if (storedUsername) {
+        usernameInput.value = storedUsername;
+      }
+
+      window.sendMessage = async () => {
+        const messageInput = document.getElementById('message-input');
+        const username = usernameInput.value.trim();
+        const message = messageInput.value.trim();
+
+        if (username !== '' && message !== '') {
+          localStorage.setItem('username', username);
+
+          const timestamp = new Date().getTime();
+
+          db.ref('messages').push({
+            timestamp: timestamp,
+            username: username,
+            message: message
+          });
+
+          messageInput.value = '';
+        }
+      };
+
+      window.displayMessage = (messageData) => {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageElement = document.createElement('div');
+        messageElement.innerText = `${messageData.username}: ${messageData.message}`;
+        chatMessages.appendChild(messageElement);
+      };
+
+      db.ref('messages').on('child_added', (snapshot) => {
+        const messageData = snapshot.val();
+        displayMessage(messageData);
+      });
+
+      window.closeBookmarklet = () => {
+        container.remove();
+      };
+    };
+
+    loadFirebaseScript();
+  </script>
+</body>
+</html>
